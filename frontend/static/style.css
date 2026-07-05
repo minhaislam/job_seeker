@@ -2,27 +2,27 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0f1117;
-  --surface: #1a1d27;
-  --surface2: #222637;
-  --border: #2e3250;
-  --accent: #6c63ff;
-  --accent-light: #8b84ff;
+  --bg: #09090b;
+  --surface: #111113;
+  --border: #27272a;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
   --green: #22c55e;
-  --yellow: #eab308;
+  --yellow: #f59e0b;
   --red: #ef4444;
-  --text: #e2e8f0;
-  --text-muted: #8892a4;
-  --radius: 12px;
-  --radius-sm: 8px;
+  --text: #fafafa;
+  --text-muted: #71717a;
+  --radius: 10px;
+  --radius-sm: 6px;
 }
 
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   min-height: 100vh;
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ===== Header ===== */
