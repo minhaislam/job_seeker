@@ -2,29 +2,6 @@ services:
   app:
     build: .
     env_file: .env
-    networks:
-      - jobseeker_net
-    restart: unless-stopped
-
-  caddy:
-    image: caddy:2
     ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    networks:
-      - jobseeker_net
-    depends_on:
-      - app
+      - "127.0.0.1:8001:8000"
     restart: unless-stopped
-
-networks:
-  jobseeker_net:
-
-volumes:
-  caddy_data:
-  caddy_config:
