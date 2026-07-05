@@ -234,14 +234,14 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
   padding: 80px 0;
   color: var(--text-muted);
 }
-.empty-icon { font-size: 3rem; margin-bottom: 12px; }
+.empty-icon { font-size: 2.4rem; margin-bottom: 12px; }
 
 .hidden { display: none !important; }
 
 /* ===== Spinner ===== */
 .spinner {
-  width: 18px; height: 18px;
-  border: 2px solid rgba(255,255,255,0.3);
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.2);
   border-top-color: #fff;
   border-radius: 50%;
   animation: spin .7s linear infinite;
@@ -253,18 +253,18 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.7);
+  background: rgba(0,0,0,.85);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
   padding: 16px;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
 }
 .modal {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 12px;
   width: 100%;
   max-width: 740px;
   max-height: 88vh;
@@ -278,10 +278,10 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   cursor: pointer;
   line-height: 1;
-  transition: color .2s;
+  transition: color .15s;
 }
 .modal-close:hover { color: var(--text); }
 
@@ -293,35 +293,35 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
   margin-bottom: 20px;
   padding-right: 30px;
 }
-.modal-header h2 { font-size: 1.25rem; margin-bottom: 6px; }
+.modal-header h2 { font-size: 1.4rem; font-weight: 600; margin-bottom: 5px; }
 .m-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   font-size: 0.85rem;
   color: var(--text-muted);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
-.m-company { color: var(--accent-light); font-weight: 600; }
+.m-company { color: var(--text-muted); font-weight: 500; }
 .dot { color: var(--border); }
 .m-salary { font-size: 0.85rem; color: var(--green); margin-top: 4px; }
 
 .m-score-circle {
-  width: 76px; height: 76px;
+  width: 72px; height: 72px;
   border-radius: 50%;
-  border: 3px solid var(--border);
+  border: 2px solid var(--border);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 700;
   flex-shrink: 0;
   line-height: 1.1;
   transition: border-color 0.3s, color 0.3s;
 }
-.m-score-circle small { font-size: 0.62rem; font-weight: 400; color: var(--text-muted); }
+.m-score-circle small { font-size: 0.6rem; font-weight: 400; color: var(--text-muted); }
 .score-scoring {
   border-color: var(--accent) !important;
   color: var(--accent) !important;
@@ -345,13 +345,14 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
   color: var(--text-muted);
   padding: 8px 16px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  font-family: inherit;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
-  transition: all .2s;
+  transition: color .15s;
 }
 .tab-btn:hover { color: var(--text); }
-.tab-btn.active { color: var(--accent-light); border-bottom-color: var(--accent); }
+.tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
 
 /* ===== Overview tab ===== */
 .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
@@ -361,7 +362,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 16px;
-  font-size: 0.88rem;
+  font-size: 0.87rem;
   color: var(--text-muted);
   white-space: pre-wrap;
   max-height: 280px;
@@ -375,13 +376,13 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
   background: var(--accent);
   color: #fff;
   text-decoration: none;
-  padding: 10px 24px;
+  padding: 9px 22px;
   border-radius: var(--radius-sm);
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: background .2s;
+  font-weight: 500;
+  font-size: 0.88rem;
+  transition: background .15s;
 }
-.apply-btn:hover { background: var(--accent-light); }
+.apply-btn:hover { background: var(--accent-hover); }
 
 /* ===== Match tab ===== */
 .match-summary {
@@ -389,49 +390,50 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
   border-left: 3px solid var(--accent);
   padding: 12px 16px;
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--text-muted);
   margin-bottom: 20px;
   line-height: 1.7;
 }
 .skill-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .skill-heading {
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 0.8rem;
+  font-weight: 600;
   margin-bottom: 10px;
   text-transform: uppercase;
-  letter-spacing: .05em;
+  letter-spacing: .06em;
 }
 .skill-heading.matched { color: var(--green); }
 .skill-heading.missing  { color: var(--yellow); }
-.skill-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.skill-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
 .skill-list li {
-  background: var(--bg);
+  background: transparent;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 5px 12px;
-  font-size: 0.85rem;
+  padding: 4px 10px;
+  font-size: 0.82rem;
   color: var(--text-muted);
 }
 
 /* ===== Cover Letter tab ===== */
 .cover-hint {
   color: var(--text-muted);
-  font-size: 0.9rem;
-  margin-bottom: 16px;
+  font-size: 0.88rem;
+  margin-bottom: 14px;
 }
 .gen-cover-btn {
   background: var(--accent);
   border: none;
   color: #fff;
-  padding: 10px 24px;
+  padding: 9px 22px;
   border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
-  transition: background .2s;
+  transition: background .15s;
 }
-.gen-cover-btn:hover { background: var(--accent-light); }
+.gen-cover-btn:hover { background: var(--accent-hover); }
 
 .cover-loading {
   display: flex;
@@ -441,7 +443,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
   padding: 40px 0;
   color: var(--text-muted);
 }
-.cover-loading .spinner { width: 28px; height: 28px; border-width: 3px; }
+.cover-loading .spinner { width: 26px; height: 26px; border-width: 2px; }
 
 .cover-output textarea {
   width: 100%;
@@ -451,7 +453,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
   border-radius: var(--radius-sm);
   color: var(--text);
   padding: 16px;
-  font-size: 0.88rem;
+  font-size: 0.87rem;
   line-height: 1.7;
   resize: vertical;
   font-family: inherit;
@@ -459,26 +461,28 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
 }
 .cover-actions { display: flex; gap: 10px; }
 .copy-btn {
-  background: var(--green);
+  background: var(--accent);
   border: none;
   color: #fff;
-  padding: 9px 20px;
+  padding: 8px 18px;
   border-radius: var(--radius-sm);
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
-  transition: opacity .2s;
+  transition: background .15s;
 }
-.copy-btn:hover { opacity: .85; }
+.copy-btn:hover { background: var(--accent-hover); }
 .regen-btn {
-  background: var(--surface2);
+  background: transparent;
   border: 1px solid var(--border);
   color: var(--text-muted);
-  padding: 9px 20px;
+  padding: 8px 18px;
   border-radius: var(--radius-sm);
-  font-size: 0.88rem;
+  font-size: 0.85rem;
+  font-family: inherit;
   cursor: pointer;
-  transition: all .2s;
+  transition: border-color .15s, color .15s;
 }
 .regen-btn:hover { border-color: var(--accent); color: var(--text); }
 
@@ -545,7 +549,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
 .cv-remove-btn:hover { border-color: var(--red); color: var(--red); }
 
 /* ===== Scrollbar ===== */
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
