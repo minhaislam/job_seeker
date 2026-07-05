@@ -5,7 +5,6 @@ const cvFileInput   = document.getElementById('cv-file-input');
 const cvUploadBtn   = document.getElementById('cv-upload-btn');
 const cvUploadArea  = document.getElementById('cv-upload-area');
 const cvLoadedArea  = document.getElementById('cv-loaded-area');
-const cvChars       = document.getElementById('cv-chars');
 const cvRemoveBtn   = document.getElementById('cv-remove-btn');
 
 cvFileInput.addEventListener('change', () => {
@@ -47,7 +46,6 @@ function setCvLoaded(loaded, chars) {
   cvUploaded = loaded;
   cvUploadArea.classList.toggle('hidden', loaded);
   cvLoadedArea.classList.toggle('hidden', !loaded);
-  if (loaded) cvChars.textContent = chars.toLocaleString();
 }
 
 (async () => {
