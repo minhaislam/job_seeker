@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Seeker</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">&#128269;</span>
+        <span>Job Seeker</span>
+      </div>
+      <div class="tagline">AI-powered remote job search</div>
+    </div>
+  </header>
+
+  <div id="cv-bar" class="cv-bar">
+    <div class="cv-bar-inner">
+      <div id="cv-upload-area" class="cv-upload-area">
+        <span class="cv-bar-label">&#128196; Your CV:</span>
+        <label class="cv-file-label">
+          <input type="file" id="cv-file-input" accept=".pdf,.txt" />
+          Choose PDF or TXT
+        </label>
+        <button id="cv-upload-btn" class="cv-upload-btn" disabled>Upload CV</button>
+        <span id="cv-upload-hint" class="cv-hint">Upload your CV to enable job matching</span>
+      </div>
+      <div id="cv-loaded-area" class="cv-loaded-area hidden">
+        <span class="cv-bar-label">&#128196; Your CV:</span>
+        <span class="cv-status-ok">&#10003; CV loaded (<span id="cv-chars">0</span> chars)</span>
+        <button id="cv-remove-btn" class="cv-remove-btn">Remove</button>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <section class="search-section">
+      <form id="search-form" class="search-bar">
+        <input
+          id="query-input"
+          type="text"
+          placeholder="e.g. data engineer, ETL, BigQuery, Airflow..."
+          value="data engineer"
+          autocomplete="off"
+        />
+        <button type="submit" id="search-btn">
+          <span id="btn-label">Search Jobs</span>
+          <span id="btn-spinner" class="spinner hidden"></span>
+        </button>
+      </form>
+      <div class="quick-tags">
+        <span class="tag-label">Quick search:</span>
+        <button class="quick-tag" data-q="senior data engineer remote">Senior Data Engineer</button>
+        <button class="quick-tag" data-q="data engineer BigQuery">BigQuery</button>
+        <button class="quick-tag" data-q="data engineer Airflow">Airflow</button>
+        <button class="quick-tag" data-q="data engineer Python ETL">Python ETL</button>
+        <button class="quick-tag" data-q="analytics engineer dbt">Analytics Engineer</button>
+      </div>
+    </section>
+
+    <section id="results-section" class="results-section hidden">
+      <div class="results-header">
+        <span id="results-count"></span>
+        <div class="sort-row">
+          <label for="sort-select">Sort by:</label>
+          <select id="sort-select">
+            <option value="match">Match Score</option>
+            <option value="date">Date Posted</option>
+            <option value="company">Company</option>
+          </select>
+        </div>
+      </div>
+      <div id="job-list" class="job-list"></div>
+    </section>
+
+    <div id="empty-state" class="empty-state hidden">
+      <div class="empty-icon">&#128269;</div>
+      <p>No jobs found. Try a different keyword.</p>
+    </div>
+  </main>
+
+  <!-- Job Detail Modal -->
+  <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal">
+      <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+
+      <div class="modal-header">
+        <div>
+          <h2 id="m-title"></h2>
+          <div class="m-meta">
+            <span id="m-company" class="m-company"></span>
+            <span class="dot">&#183;</span>
+            <span id="m-location"></span>
+            <span class="dot">&#183;</span>
+            <span id="m-source" class="badge-source"></span>
+          </div>
+          <div id="m-salary" class="m-salary"></div>
+        </div>
+        <div class="m-score-circle" id="m-score-circle">
+          <span id="m-score-num"></span>
+          <small>match</small>
+        </div>
+      </div>
+
+      <div class="modal-tabs">
+        <button class="tab-btn active" data-tab="overview">Overview</button>
+        <button class="tab-btn" data-tab="match">Match Analysis</button>
+        <button class="tab-btn" data-tab="cover">Cover Letter</button>
+      </div>
+
+      <div class="tab-content" id="tab-overview">
+        <div id="m-tags" class="tag-row"></div>
+        <div id="m-description" class="description-box"></div>
+        <a id="m-apply-link" class="apply-btn" target="_blank" rel="noopener">Apply Now &#8599;</a>
+      </div>
+
+      <div class="tab-content hidden" id="tab-match">
+        <p id="m-summary" class="match-summary"></p>
+        <div class="skill-columns">
+          <div class="skill-col">
+            <h4 class="skill-heading matched">&#10003; Matched Skills</h4>
+            <ul id="m-matched-skills" class="skill-list"></ul>
+          </div>
+          <div class="skill-col">
+            <h4 class="skill-heading missing">&#9888; Gap Skills</h4>
+            <ul id="m-missing-skills" class="skill-list"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content hidden" id="tab-cover">
+        <div id="cover-loading" class="cover-loading hidden">
+          <div class="spinner"></div>
+          <p>Generating personalised cover letter...</p>
+        </div>
+        <div id="cover-output" class="cover-output hidden">
+          <textarea id="cover-text" readonly></textarea>
+          <div class="cover-actions">
+            <button id="copy-btn" class="copy-btn">Copy to Clipboard</button>
+            <button id="regen-btn" class="regen-btn">Regenerate</button>
+          </div>
+        </div>
+        <div id="cover-idle">
+          <p class="cover-hint">Click the button below to generate a tailored cover letter for this role.</p>
+          <button id="gen-cover-btn" class="gen-cover-btn">Generate Cover Letter</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
