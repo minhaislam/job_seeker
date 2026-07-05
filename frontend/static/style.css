@@ -27,27 +27,26 @@ body {
 
 /* ===== Header ===== */
 header {
-  background: linear-gradient(135deg, #1e1b4b 0%, #1a1d27 100%);
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
-  padding: 18px 24px;
+  padding: 0 24px;
+  height: 52px;
+  display: flex;
+  align-items: center;
 }
 .header-inner {
   max-width: 1100px;
   margin: 0 auto;
+  width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
 }
 .logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--accent-light);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
 }
-.logo-icon { font-size: 1.6rem; }
-.tagline { color: var(--text-muted); font-size: 0.85rem; }
 
 /* ===== Main ===== */
 main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
@@ -57,12 +56,12 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
 
 .search-bar {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 8px;
-  transition: border-color .2s;
+  padding: 6px;
+  transition: border-color .15s;
 }
 .search-bar:focus-within { border-color: var(--accent); }
 
@@ -72,7 +71,8 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
   border: none;
   outline: none;
   color: var(--text);
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
   padding: 6px 10px;
 }
 .search-bar input::placeholder { color: var(--text-muted); }
@@ -81,38 +81,40 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
   background: var(--accent);
   border: none;
   color: #fff;
-  padding: 10px 22px;
+  padding: 8px 20px;
   border-radius: var(--radius-sm);
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: background .2s;
+  transition: background .15s;
 }
-.search-bar button:hover { background: var(--accent-light); }
-.search-bar button:disabled { opacity: 0.6; cursor: not-allowed; }
+.search-bar button:hover { background: var(--accent-hover); }
+.search-bar button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .quick-tags {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 6px;
+  margin-top: 10px;
 }
-.tag-label { color: var(--text-muted); font-size: 0.82rem; }
+.tag-label { color: var(--text-muted); font-size: 0.78rem; }
 .quick-tag {
-  background: var(--surface2);
+  background: transparent;
   border: 1px solid var(--border);
   color: var(--text-muted);
   border-radius: 20px;
-  padding: 4px 14px;
-  font-size: 0.82rem;
+  padding: 3px 12px;
+  font-size: 0.78rem;
+  font-family: inherit;
   cursor: pointer;
-  transition: all .2s;
+  transition: border-color .15s, color .15s;
 }
-.quick-tag:hover { border-color: var(--accent); color: var(--accent-light); }
+.quick-tag:hover { border-color: var(--accent); color: var(--text); }
 
 /* ===== Results ===== */
 .results-header {
@@ -481,9 +483,9 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
 
 /* ===== CV Upload Bar ===== */
 .cv-bar {
-  background: var(--surface);
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
-  padding: 10px 24px;
+  padding: 8px 24px;
 }
 .cv-bar-inner {
   max-width: 1100px;
@@ -493,49 +495,51 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
 .cv-loaded-area {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 .cv-bar-label {
   color: var(--text-muted);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   white-space: nowrap;
 }
 .cv-file-label {
   position: relative;
   cursor: pointer;
-  background: var(--surface2);
+  background: transparent;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 6px 14px;
-  font-size: 0.85rem;
-  color: var(--text);
-  transition: border-color .2s;
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  transition: border-color .15s;
 }
-.cv-file-label:hover { border-color: var(--accent); }
+.cv-file-label:hover { border-color: var(--accent); color: var(--text); }
 .cv-file-label input[type="file"] { display: none; }
 .cv-upload-btn {
   background: var(--accent);
   color: #fff;
   border: none;
   border-radius: var(--radius-sm);
-  padding: 6px 16px;
-  font-size: 0.85rem;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: opacity .2s;
+  transition: background .15s;
 }
+.cv-upload-btn:not(:disabled):hover { background: var(--accent-hover); }
 .cv-upload-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.cv-upload-btn:not(:disabled):hover { opacity: 0.85; }
-.cv-hint { color: var(--text-muted); font-size: 0.8rem; }
-.cv-status-ok { color: var(--green); font-size: 0.88rem; }
+.cv-hint { color: var(--text-muted); font-size: 0.78rem; }
+.cv-status-ok { color: var(--green); font-size: 0.85rem; font-weight: 500; }
 .cv-remove-btn {
   background: none;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-muted);
-  padding: 4px 12px;
-  font-size: 0.8rem;
+  padding: 3px 10px;
+  font-size: 0.78rem;
   cursor: pointer;
+  transition: border-color .15s, color .15s;
 }
 .cv-remove-btn:hover { border-color: var(--red); color: var(--red); }
 
