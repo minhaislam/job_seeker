@@ -1,0 +1,4 @@
+# Edit this line — replace with your actual subdomain before deploying
+jobs.yourdomain.com {
+    reverse_proxy app:8000
+}
