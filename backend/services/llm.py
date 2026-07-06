@@ -6,6 +6,7 @@ Controlled via .env:
   LLM_PROVIDER=anthropic    + ANTHROPIC_API_KEY=...     → Anthropic direct
 """
 
+import asyncio
 import json
 import httpx
 from backend.config import (
@@ -58,19 +59,27 @@ async def _ollama_chat(prompt: str, json_mode: bool) -> str:
         return data["message"]["content"]
 
 
-async def _openrouter_chat(prompt: str) -> str:
+async def _openrouter_chat(prompt: str, max_retries: int = 3) -> str:
+    backoff = 1.0
     async with httpx.AsyncClient(timeout=120) as client:
-        resp = await client.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"},
-            json={
-                "model": OPENROUTER_MODEL,
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.1,
-            },
-        )
-        resp.raise_for_status()
-        return resp.json()["choices"][0]["message"]["content"]
+        for attempt in range(max_retries + 1):
+            resp = await client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"},
+                json={
+                    "model": OPENROUTER_MODEL,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.1,
+                },
+            )
+            if resp.status_code == 429 and attempt < max_retries:
+                wait = float(resp.headers.get("Retry-After", backoff))
+                print(f"[LLM] OpenRouter 429, retrying in {wait:.1f}s (attempt {attempt + 1}/{max_retries})")
+                await asyncio.sleep(wait)
+                backoff *= 2
+                continue
+            resp.raise_for_status()
+            return resp.json()["choices"][0]["message"]["content"]
 
 
 async def _anthropic_chat(prompt: str) -> str:
