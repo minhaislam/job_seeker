@@ -43,7 +43,6 @@
           id="query-input"
           type="text"
           placeholder="e.g. data engineer, ETL, BigQuery, Airflow..."
-          value="data engineer"
           autocomplete="off"
         />
         <button type="submit" id="search-btn">
@@ -51,13 +50,8 @@
           <span id="btn-spinner" class="spinner hidden"></span>
         </button>
       </form>
-      <div class="quick-tags">
-        <span class="tag-label">Quick search:</span>
-        <button class="quick-tag" data-q="senior data engineer remote">Senior Data Engineer</button>
-        <button class="quick-tag" data-q="data engineer BigQuery">BigQuery</button>
-        <button class="quick-tag" data-q="data engineer Airflow">Airflow</button>
-        <button class="quick-tag" data-q="data engineer Python ETL">Python ETL</button>
-        <button class="quick-tag" data-q="analytics engineer dbt">Analytics Engineer</button>
+      <div id="quick-tags" class="quick-tags hidden">
+        <span class="tag-label">Suggested for you:</span>
       </div>
     </section>
 

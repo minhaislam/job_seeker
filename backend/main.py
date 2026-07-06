@@ -34,7 +34,7 @@ def _get_session(request: Request, response: Response) -> dict:
     if not session_id or session_id not in _sessions:
         session_id = uuid.uuid4().hex
         response.set_cookie(SESSION_COOKIE, session_id, httponly=True, samesite="lax")
-        _sessions[session_id] = {"profile": "", "scores": {}}
+        _sessions[session_id] = {"profile": "", "scores": {}, "suggestions": []}
     return _sessions[session_id]
 
 
@@ -79,15 +79,16 @@ async def upload_cv(request: Request, response: Response, file: UploadFile = Fil
 
     session["profile"] = text
     session["scores"] = {}
+    session["suggestions"] = await matcher.suggest_queries(text)
     print(f"[CV] uploaded: {len(text)} chars from {filename}")
-    return {"status": "ok", "chars": len(text)}
+    return {"status": "ok", "chars": len(text), "suggestions": session["suggestions"]}
 
 
 @app.get("/api/cv/status")
 async def cv_status(request: Request, response: Response):
     session = _get_session(request, response)
     profile = session["profile"]
-    return {"uploaded": bool(profile), "chars": len(profile)}
+    return {"uploaded": bool(profile), "chars": len(profile), "suggestions": session["suggestions"]}
 
 
 @app.post("/api/search")

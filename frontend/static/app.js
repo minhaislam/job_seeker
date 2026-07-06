@@ -6,6 +6,8 @@ const cvUploadBtn   = document.getElementById('cv-upload-btn');
 const cvUploadArea  = document.getElementById('cv-upload-area');
 const cvLoadedArea  = document.getElementById('cv-loaded-area');
 const cvRemoveBtn   = document.getElementById('cv-remove-btn');
+const quickTags     = document.getElementById('quick-tags');
+const queryInputEl  = document.getElementById('query-input');
 
 cvFileInput.addEventListener('change', () => {
   cvUploadBtn.disabled = !cvFileInput.files.length;
@@ -28,6 +30,7 @@ cvUploadBtn.addEventListener('click', async () => {
     }
     const data = await resp.json();
     setCvLoaded(true, data.chars);
+    renderSuggestions(data.suggestions || []);
   } catch (e) {
     alert('CV upload failed: ' + e.message);
     cvUploadBtn.textContent = 'Upload CV';
@@ -40,6 +43,7 @@ cvRemoveBtn.addEventListener('click', () => {
   cvUploadBtn.disabled = true;
   cvUploadBtn.textContent = 'Upload CV';
   setCvLoaded(false, 0);
+  renderSuggestions([]);
 });
 
 function setCvLoaded(loaded, chars) {
@@ -48,11 +52,28 @@ function setCvLoaded(loaded, chars) {
   cvLoadedArea.classList.toggle('hidden', !loaded);
 }
 
+function renderSuggestions(suggestions) {
+  quickTags.querySelectorAll('.quick-tag').forEach(btn => btn.remove());
+  quickTags.classList.toggle('hidden', suggestions.length === 0);
+  suggestions.forEach(q => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'quick-tag';
+    btn.textContent = q;
+    btn.addEventListener('click', () => {
+      queryInputEl.value = q;
+      doSearch();
+    });
+    quickTags.appendChild(btn);
+  });
+}
+
 (async () => {
   try {
     const resp = await fetch('/api/cv/status');
     const data = await resp.json();
     if (data.uploaded) setCvLoaded(true, data.chars || 0);
+    renderSuggestions(data.suggestions || []);
   } catch {}
 })();
 
@@ -76,13 +97,6 @@ const modalClose  = document.getElementById('modal-close');
 
 /* ===== Search ===== */
 form.addEventListener('submit', e => { e.preventDefault(); doSearch(); });
-
-document.querySelectorAll('.quick-tag').forEach(btn => {
-  btn.addEventListener('click', () => {
-    queryInput.value = btn.dataset.q;
-    doSearch();
-  });
-});
 
 async function doSearch() {
   const query = queryInput.value.trim();
