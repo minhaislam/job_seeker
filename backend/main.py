@@ -1,6 +1,7 @@
 import asyncio
 import io
-from fastapi import FastAPI, HTTPException, UploadFile, File
+import uuid
+from fastapi import FastAPI, HTTPException, UploadFile, File, Request, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,10 +19,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+SESSION_COOKIE = "session_id"
+
 _job_cache: dict[str, Job] = {}
-_user_profile: str = ""
+# Per-browser state, keyed by session_id cookie. Each session gets its own CV
+# and match scores so no two browsers/devices ever see each other's data.
+_sessions: dict[str, dict] = {}
 
 _STOPWORDS = {"in", "at", "for", "and", "or", "the", "a", "an", "job", "jobs", "remote", "us", "uk"}
+
+
+def _get_session(request: Request, response: Response) -> dict:
+    session_id = request.cookies.get(SESSION_COOKIE)
+    if not session_id or session_id not in _sessions:
+        session_id = uuid.uuid4().hex
+        response.set_cookie(SESSION_COOKIE, session_id, httponly=True, samesite="lax")
+        _sessions[session_id] = {"profile": "", "scores": {}}
+    return _sessions[session_id]
 
 
 def _is_relevant(job: Job, query: str) -> bool:
@@ -38,8 +52,8 @@ async def index():
 
 
 @app.post("/api/cv")
-async def upload_cv(file: UploadFile = File(...)):
-    global _user_profile
+async def upload_cv(request: Request, response: Response, file: UploadFile = File(...)):
+    session = _get_session(request, response)
 
     filename = file.filename or ""
     content = await file.read()
@@ -63,14 +77,17 @@ async def upload_cv(file: UploadFile = File(...)):
     if not text:
         raise HTTPException(status_code=400, detail="No text could be extracted from the file.")
 
-    _user_profile = text
-    print(f"[CV] uploaded: {len(_user_profile)} chars from {filename}")
-    return {"status": "ok", "chars": len(_user_profile)}
+    session["profile"] = text
+    session["scores"] = {}
+    print(f"[CV] uploaded: {len(text)} chars from {filename}")
+    return {"status": "ok", "chars": len(text)}
 
 
 @app.get("/api/cv/status")
-async def cv_status():
-    return {"uploaded": bool(_user_profile), "chars": len(_user_profile)}
+async def cv_status(request: Request, response: Response):
+    session = _get_session(request, response)
+    profile = session["profile"]
+    return {"uploaded": bool(profile), "chars": len(profile)}
 
 
 @app.post("/api/search")
@@ -100,30 +117,37 @@ async def search_jobs(req: SearchRequest):
 
 
 @app.get("/api/job/{job_id}")
-async def get_job(job_id: str):
-    if not _user_profile:
+async def get_job(job_id: str, request: Request, response: Response):
+    session = _get_session(request, response)
+    profile = session["profile"]
+    if not profile:
         raise HTTPException(status_code=400, detail="No CV uploaded. Please upload your CV first.")
 
     job = _job_cache.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    if job.match_score is None:
-        score_data = await matcher.score_job(job, _user_profile)
-        job.match_score = score_data.get("score", 50)
-        job.match_summary = score_data.get("summary", "")
-        job.matched_skills = score_data.get("matched_skills", [])
-        job.missing_skills = score_data.get("missing_skills", [])
-        _job_cache[job_id] = job
+    score = session["scores"].get(job_id)
+    if score is None:
+        score_data = await matcher.score_job(job, profile)
+        score = {
+            "match_score": score_data.get("score", 50),
+            "match_summary": score_data.get("summary", ""),
+            "matched_skills": score_data.get("matched_skills", []),
+            "missing_skills": score_data.get("missing_skills", []),
+        }
+        session["scores"][job_id] = score
 
-    return job.model_dump()
+    return {**job.model_dump(), **score}
 
 
 @app.post("/api/cover-letter")
-async def gen_cover_letter(req: CoverLetterRequest):
-    if not _user_profile:
+async def gen_cover_letter(req: CoverLetterRequest, request: Request, response: Response):
+    session = _get_session(request, response)
+    profile = session["profile"]
+    if not profile:
         raise HTTPException(status_code=400, detail="No CV uploaded. Please upload your CV first.")
-    text = await cover_letter.generate(req, _user_profile)
+    text = await cover_letter.generate(req, profile)
     return {"cover_letter": text}
 
 
