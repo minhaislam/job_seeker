@@ -29,3 +29,10 @@ class CoverLetterRequest(BaseModel):
     job_title: str
     company: str
     description: str
+
+
+class LLMSettings(BaseModel):
+    provider: str
+    api_key: Optional[str] = None
+    base_url: Optional[str] = None
+    model: Optional[str] = None

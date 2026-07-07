@@ -4,6 +4,12 @@ Controlled via .env:
   LLM_PROVIDER=ollama       + OLLAMA_MODEL=...          → local Ollama
   LLM_PROVIDER=openrouter   + OPENROUTER_API_KEY=...    → OpenRouter cloud
   LLM_PROVIDER=anthropic    + ANTHROPIC_API_KEY=...     → Anthropic direct
+
+Any call to chat() may pass `override` — a plain dict shaped like
+backend.models.LLMSettings (provider/api_key/base_url/model) — to use a
+different provider/key/model/base_url for that call only, without
+touching the server-wide .env defaults. Fields left blank/None in the
+override fall back to the matching .env value.
 """
 
 import asyncio
@@ -18,7 +24,9 @@ from backend.config import (
     OPENROUTER_MODEL,
 )
 
-# Fail fast at startup if required keys are missing
+ANTHROPIC_DEFAULT_MODEL = "claude-sonnet-4-6"
+
+# Fail fast at startup if required keys are missing for the server's own default provider
 if LLM_PROVIDER == "openrouter":
     if not OPENROUTER_API_KEY:
         raise ValueError("LLM_PROVIDER=openrouter requires OPENROUTER_API_KEY in .env")
@@ -29,22 +37,33 @@ elif LLM_PROVIDER == "anthropic":
         raise ValueError("LLM_PROVIDER=anthropic requires ANTHROPIC_API_KEY in .env")
 
 
-async def chat(prompt: str, json_mode: bool = False) -> str:
-    if LLM_PROVIDER == "ollama":
-        return await _ollama_chat(prompt, json_mode)
-    elif LLM_PROVIDER == "openrouter":
-        return await _openrouter_chat(prompt)
-    elif LLM_PROVIDER == "anthropic":
-        return await _anthropic_chat(prompt)
+async def chat(prompt: str, json_mode: bool = False, override: dict | None = None) -> str:
+    override = override or {}
+    provider = override.get("provider") or LLM_PROVIDER
+    if provider == "default":
+        provider = LLM_PROVIDER
+
+    if provider == "ollama":
+        base_url = override.get("base_url") or OLLAMA_BASE_URL
+        model = override.get("model") or OLLAMA_MODEL
+        return await _ollama_chat(prompt, json_mode, base_url, model)
+    elif provider == "openrouter":
+        api_key = override.get("api_key") or OPENROUTER_API_KEY
+        model = override.get("model") or OPENROUTER_MODEL
+        return await _openrouter_chat(prompt, api_key, model)
+    elif provider == "anthropic":
+        api_key = override.get("api_key") or ANTHROPIC_API_KEY
+        model = override.get("model") or ANTHROPIC_DEFAULT_MODEL
+        return await _anthropic_chat(prompt, api_key, model)
     else:
         raise ValueError(
-            f"Unknown LLM_PROVIDER: {LLM_PROVIDER!r}. Use ollama, openrouter, or anthropic."
+            f"Unknown LLM_PROVIDER: {provider!r}. Use ollama, openrouter, or anthropic."
         )
 
 
-async def _ollama_chat(prompt: str, json_mode: bool) -> str:
+async def _ollama_chat(prompt: str, json_mode: bool, base_url: str, model: str) -> str:
     payload: dict = {
-        "model": OLLAMA_MODEL,
+        "model": model,
         "messages": [{"role": "user", "content": prompt}],
         "stream": False,
         "options": {"temperature": 0.1},
@@ -53,21 +72,21 @@ async def _ollama_chat(prompt: str, json_mode: bool) -> str:
         payload["format"] = "json"
 
     async with httpx.AsyncClient(timeout=120) as client:
-        resp = await client.post(f"{OLLAMA_BASE_URL}/api/chat", json=payload)
+        resp = await client.post(f"{base_url}/api/chat", json=payload)
         resp.raise_for_status()
         data = resp.json()
         return data["message"]["content"]
 
 
-async def _openrouter_chat(prompt: str, max_retries: int = 3) -> str:
+async def _openrouter_chat(prompt: str, api_key: str, model: str, max_retries: int = 3) -> str:
     backoff = 1.0
     async with httpx.AsyncClient(timeout=120) as client:
         for attempt in range(max_retries + 1):
             resp = await client.post(
                 "https://openrouter.ai/api/v1/chat/completions",
-                headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"},
+                headers={"Authorization": f"Bearer {api_key}"},
                 json={
-                    "model": OPENROUTER_MODEL,
+                    "model": model,
                     "messages": [{"role": "user", "content": prompt}],
                     "temperature": 0.1,
                 },
@@ -82,11 +101,11 @@ async def _openrouter_chat(prompt: str, max_retries: int = 3) -> str:
             return resp.json()["choices"][0]["message"]["content"]
 
 
-async def _anthropic_chat(prompt: str) -> str:
+async def _anthropic_chat(prompt: str, api_key: str, model: str) -> str:
     import anthropic
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    client = anthropic.Anthropic(api_key=api_key)
     message = client.messages.create(
-        model="claude-sonnet-4-6",
+        model=model,
         max_tokens=800,
         messages=[{"role": "user", "content": prompt}],
     )
