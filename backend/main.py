@@ -152,7 +152,7 @@ async def save_settings(settings: LLMSettings, request: Request, response: Respo
     except anthropic.APIConnectionError:
         raise HTTPException(status_code=400, detail=f"Could not reach {settings.provider}")
     except Exception as e:
-        print(f"[Settings] unexpected error: {type(e).__name__}: {e}")
+        print(f"[Settings] unexpected error: {type(e).__name__}")
         raise HTTPException(status_code=400, detail="Connection test failed")
 
     session["llm_override"] = candidate

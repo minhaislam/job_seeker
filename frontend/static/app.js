@@ -442,10 +442,10 @@ function updateProviderFieldsVisibility() {
 }
 settingsProvider.addEventListener('change', updateProviderFieldsVisibility);
 
+const PROVIDER_LABELS = { default: 'Default', ollama: 'Ollama', openrouter: 'OpenRouter', anthropic: 'Anthropic' };
+
 function updateSettingsIndicator(provider) {
-  settingsIndicator.textContent = provider === 'default'
-    ? 'Default'
-    : provider.charAt(0).toUpperCase() + provider.slice(1);
+  settingsIndicator.textContent = PROVIDER_LABELS[provider] || provider;
 }
 
 async function loadSettings() {
