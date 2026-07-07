@@ -2,7 +2,7 @@ from backend.models import CoverLetterRequest
 from backend.services.llm import chat
 
 
-async def generate(req: CoverLetterRequest, profile: str) -> str:
+async def generate(req: CoverLetterRequest, profile: str, override: dict | None = None) -> str:
     prompt = f"""Write a professional cover letter for the following job application.
 
 CANDIDATE PROFILE:
@@ -28,4 +28,4 @@ Instructions:
 
 Return only the cover letter text, no subject line or meta-commentary."""
 
-    return (await chat(prompt, json_mode=False)).strip()
+    return (await chat(prompt, json_mode=False, override=override)).strip()
