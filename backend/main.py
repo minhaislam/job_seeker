@@ -1,6 +1,7 @@
 import asyncio
 import io
 import uuid
+import anthropic
 import httpx
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request, Response
 from fastapi.staticfiles import StaticFiles
@@ -107,6 +108,16 @@ async def get_settings(request: Request, response: Response):
     }
 
 
+def _map_llm_error_status(code: int) -> str:
+    if code in (401, 403):
+        return "Invalid API key"
+    if code == 404:
+        return "Model not found"
+    if code == 429:
+        return "Rate limited — try again shortly"
+    return "Connection test failed"
+
+
 @app.post("/api/settings")
 async def save_settings(settings: LLMSettings, request: Request, response: Response):
     session = _get_session(request, response)
@@ -132,19 +143,14 @@ async def save_settings(settings: LLMSettings, request: Request, response: Respo
     try:
         await llm_chat("Reply with OK.", override=candidate)
     except httpx.HTTPStatusError as e:
-        code = e.response.status_code
-        if code in (401, 403):
-            raise HTTPException(status_code=400, detail="Invalid API key")
-        if code == 404:
-            raise HTTPException(status_code=400, detail="Model not found")
-        if code == 429:
-            raise HTTPException(status_code=400, detail="Rate limited — try again shortly")
-        raise HTTPException(status_code=400, detail="Connection test failed")
+        raise HTTPException(status_code=400, detail=_map_llm_error_status(e.response.status_code))
     except (httpx.ConnectError, httpx.TimeoutException):
         target = candidate["base_url"] or settings.provider
         raise HTTPException(status_code=400, detail=f"Could not reach {target}")
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except anthropic.APIStatusError as e:
+        raise HTTPException(status_code=400, detail=_map_llm_error_status(e.status_code))
+    except anthropic.APIConnectionError:
+        raise HTTPException(status_code=400, detail=f"Could not reach {settings.provider}")
     except Exception as e:
         print(f"[Settings] unexpected error: {type(e).__name__}: {e}")
         raise HTTPException(status_code=400, detail="Connection test failed")

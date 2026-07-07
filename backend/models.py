@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 
 class Job(BaseModel):
@@ -32,7 +32,7 @@ class CoverLetterRequest(BaseModel):
 
 
 class LLMSettings(BaseModel):
-    provider: str
+    provider: Literal["default", "ollama", "openrouter", "anthropic"]
     api_key: Optional[str] = None
     base_url: Optional[str] = None
     model: Optional[str] = None
