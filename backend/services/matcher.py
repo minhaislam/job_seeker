@@ -2,7 +2,7 @@ from backend.models import Job
 from backend.services.llm import chat, parse_json_response
 
 
-async def suggest_queries(profile: str, max_suggestions: int = 5) -> list[str]:
+async def suggest_queries(profile: str, max_suggestions: int = 5, override: dict | None = None) -> list[str]:
     prompt = f"""Based on this candidate's CV, suggest up to {max_suggestions} short job-search query strings
 they should use to find relevant remote job listings (e.g. "senior data engineer", "BigQuery Airflow", "python ETL remote").
 Keep each query 2-5 words, focused on their strongest skills and target role. Reply with ONLY a JSON object, no other text.
@@ -14,7 +14,7 @@ Return ONLY this JSON:
 {{"queries": ["query1", "query2", ...]}}"""
 
     try:
-        text = await chat(prompt, json_mode=True)
+        text = await chat(prompt, json_mode=True, override=override)
         data = parse_json_response(text)
         queries = data.get("queries", [])
         return [q.strip() for q in queries if isinstance(q, str) and q.strip()][:max_suggestions]
@@ -32,7 +32,7 @@ def _relevant_description(description: str, max_chars: int = 1500) -> str:
     return description[:max_chars]
 
 
-async def score_job(job: Job, profile: str) -> dict:
+async def score_job(job: Job, profile: str, override: dict | None = None) -> dict:
     desc = _relevant_description(job.description)
     tags = ", ".join(job.tags) if job.tags else "none listed"
 
@@ -61,7 +61,7 @@ Return ONLY this JSON:
 {{"score": <integer 0-100>, "summary": "<one concise sentence>", "matched_skills": ["skill1", "skill2"], "missing_skills": ["skill1", "skill2"]}}"""
 
     try:
-        text = await chat(prompt, json_mode=True)
+        text = await chat(prompt, json_mode=True, override=override)
         return parse_json_response(text)
     except Exception as e:
         print(f"[Matcher] error: {type(e).__name__}: {e}")

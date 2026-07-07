@@ -14,6 +14,9 @@
   <header>
     <div class="header-inner">
       <div class="logo">Job Seeker</div>
+      <button id="settings-btn" class="settings-btn" title="LLM provider settings" aria-label="LLM provider settings">
+        &#9881; <span id="settings-indicator" class="settings-indicator">Default</span>
+      </button>
     </div>
   </header>
 
@@ -141,6 +144,65 @@
           <p class="cover-hint">Click the button below to generate a tailored cover letter for this role.</p>
           <button id="gen-cover-btn" class="gen-cover-btn">Generate Cover Letter</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal settings-modal">
+      <button class="modal-close" id="settings-modal-close" aria-label="Close">&times;</button>
+      <h2>LLM Provider Settings</h2>
+      <p class="settings-desc">Use your own AI provider instead of the app's default. Your key is stored only for this browser session and is sent only to the provider you choose.</p>
+
+      <div class="settings-field">
+        <label for="settings-provider">Provider</label>
+        <select id="settings-provider">
+          <option value="default">Default (app-provided)</option>
+          <option value="ollama">Ollama (your own server)</option>
+          <option value="openrouter">OpenRouter</option>
+          <option value="anthropic">Anthropic</option>
+        </select>
+      </div>
+
+      <div id="settings-fields-ollama" class="settings-provider-fields hidden">
+        <div class="settings-field">
+          <label for="settings-ollama-url">Base URL</label>
+          <input type="text" id="settings-ollama-url" placeholder="http://localhost:11434" />
+        </div>
+        <div class="settings-field">
+          <label for="settings-ollama-model">Model</label>
+          <input type="text" id="settings-ollama-model" placeholder="gemma4:e4b" />
+        </div>
+      </div>
+
+      <div id="settings-fields-openrouter" class="settings-provider-fields hidden">
+        <div class="settings-field">
+          <label for="settings-openrouter-key">API Key</label>
+          <input type="password" id="settings-openrouter-key" placeholder="sk-or-..." />
+        </div>
+        <div class="settings-field">
+          <label for="settings-openrouter-model">Model</label>
+          <input type="text" id="settings-openrouter-model" placeholder="google/gemma-3-4b-it:free" />
+        </div>
+      </div>
+
+      <div id="settings-fields-anthropic" class="settings-provider-fields hidden">
+        <div class="settings-field">
+          <label for="settings-anthropic-key">API Key</label>
+          <input type="password" id="settings-anthropic-key" placeholder="sk-ant-..." />
+        </div>
+        <div class="settings-field">
+          <label for="settings-anthropic-model">Model (optional)</label>
+          <input type="text" id="settings-anthropic-model" placeholder="claude-sonnet-4-6" />
+        </div>
+      </div>
+
+      <div id="settings-status" class="settings-status hidden"></div>
+
+      <div class="settings-actions">
+        <button id="settings-save-btn" class="cv-upload-btn">Save</button>
+        <span id="settings-spinner" class="spinner hidden"></span>
       </div>
     </div>
   </div>
