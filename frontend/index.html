@@ -11,19 +11,12 @@
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <header>
-    <div class="header-inner">
-      <div class="logo">Job Seeker</div>
-      <button id="settings-btn" class="settings-btn" title="LLM provider settings" aria-label="LLM provider settings">
-        &#9881; <span id="settings-indicator" class="settings-indicator">Default</span>
-      </button>
-    </div>
-  </header>
+  <aside class="sidebar">
+    <div class="sidebar-logo">Job Seeker</div>
 
-  <div id="cv-bar" class="cv-bar">
-    <div class="cv-bar-inner">
+    <div class="sidebar-section">
+      <span class="sidebar-section-label">Your CV</span>
       <div id="cv-upload-area" class="cv-upload-area">
-        <span class="cv-bar-label">&#128196; Your CV:</span>
         <label class="cv-file-label">
           <input type="file" id="cv-file-input" accept=".pdf,.txt" />
           Choose PDF or TXT
@@ -32,13 +25,19 @@
         <span id="cv-upload-hint" class="cv-hint">Upload your CV to enable job matching</span>
       </div>
       <div id="cv-loaded-area" class="cv-loaded-area hidden">
-        <span class="cv-bar-label">&#128196; Your CV:</span>
         <span class="cv-status-ok">● CV loaded</span>
         <button id="cv-remove-btn" class="cv-remove-btn">Remove</button>
       </div>
     </div>
-  </div>
 
+    <div class="sidebar-section">
+      <span class="sidebar-section-label">AI Provider</span>
+      <span id="settings-indicator" class="settings-indicator">Default</span>
+      <button id="settings-btn" class="sidebar-settings-change" title="LLM provider settings" aria-label="LLM provider settings">Change</button>
+    </div>
+  </aside>
+
+  <div class="main-content">
   <main>
     <section class="search-section">
       <form id="search-form" class="search-bar">
@@ -78,6 +77,7 @@
       <p>No jobs found. Try a different keyword.</p>
     </div>
   </main>
+  </div>
 
   <!-- Job Detail Modal -->
   <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
