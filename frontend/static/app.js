@@ -402,3 +402,127 @@ function formatDate(str) {
 function escHtml(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
+
+/* ===== LLM Settings ===== */
+const settingsBtn          = document.getElementById('settings-btn');
+const settingsIndicator    = document.getElementById('settings-indicator');
+const settingsModalOverlay = document.getElementById('settings-modal-overlay');
+const settingsModalClose   = document.getElementById('settings-modal-close');
+const settingsProvider     = document.getElementById('settings-provider');
+const settingsSaveBtn      = document.getElementById('settings-save-btn');
+const settingsSpinner      = document.getElementById('settings-spinner');
+const settingsStatus       = document.getElementById('settings-status');
+
+const settingsProviderFields = {
+  ollama: document.getElementById('settings-fields-ollama'),
+  openrouter: document.getElementById('settings-fields-openrouter'),
+  anthropic: document.getElementById('settings-fields-anthropic'),
+};
+
+const settingsInputs = {
+  ollama: {
+    url: document.getElementById('settings-ollama-url'),
+    model: document.getElementById('settings-ollama-model'),
+  },
+  openrouter: {
+    key: document.getElementById('settings-openrouter-key'),
+    model: document.getElementById('settings-openrouter-model'),
+  },
+  anthropic: {
+    key: document.getElementById('settings-anthropic-key'),
+    model: document.getElementById('settings-anthropic-model'),
+  },
+};
+
+function updateProviderFieldsVisibility() {
+  const provider = settingsProvider.value;
+  Object.entries(settingsProviderFields).forEach(([name, el]) => {
+    el.classList.toggle('hidden', name !== provider);
+  });
+}
+settingsProvider.addEventListener('change', updateProviderFieldsVisibility);
+
+function updateSettingsIndicator(provider) {
+  settingsIndicator.textContent = provider === 'default'
+    ? 'Default'
+    : provider.charAt(0).toUpperCase() + provider.slice(1);
+}
+
+async function loadSettings() {
+  try {
+    const resp = await fetch('/api/settings');
+    const data = await resp.json();
+    updateSettingsIndicator(data.provider);
+    settingsProvider.value = data.provider;
+
+    if (data.provider === 'ollama') {
+      settingsInputs.ollama.url.value = data.base_url || '';
+      settingsInputs.ollama.model.value = data.model || '';
+    } else if (data.provider === 'openrouter') {
+      settingsInputs.openrouter.model.value = data.model || '';
+      settingsInputs.openrouter.key.placeholder = data.has_api_key ? '•••• saved' : 'sk-or-...';
+    } else if (data.provider === 'anthropic') {
+      settingsInputs.anthropic.model.value = data.model || '';
+      settingsInputs.anthropic.key.placeholder = data.has_api_key ? '•••• saved' : 'sk-ant-...';
+    }
+    updateProviderFieldsVisibility();
+  } catch {}
+}
+
+settingsBtn.addEventListener('click', () => {
+  settingsStatus.classList.add('hidden');
+  settingsModalOverlay.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+});
+settingsModalClose.addEventListener('click', closeSettingsModal);
+settingsModalOverlay.addEventListener('click', e => { if (e.target === settingsModalOverlay) closeSettingsModal(); });
+
+function closeSettingsModal() {
+  settingsModalOverlay.classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+settingsSaveBtn.addEventListener('click', async () => {
+  const provider = settingsProvider.value;
+  const body = { provider };
+
+  if (provider === 'ollama') {
+    body.base_url = settingsInputs.ollama.url.value.trim() || null;
+    body.model = settingsInputs.ollama.model.value.trim() || null;
+  } else if (provider === 'openrouter') {
+    body.api_key = settingsInputs.openrouter.key.value.trim() || null;
+    body.model = settingsInputs.openrouter.model.value.trim() || null;
+  } else if (provider === 'anthropic') {
+    body.api_key = settingsInputs.anthropic.key.value.trim() || null;
+    body.model = settingsInputs.anthropic.model.value.trim() || null;
+  }
+
+  settingsSaveBtn.disabled = true;
+  settingsSpinner.classList.remove('hidden');
+  settingsStatus.classList.add('hidden');
+
+  try {
+    const resp = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'Save failed');
+
+    updateSettingsIndicator(data.provider);
+    settingsStatus.textContent = 'Saved.';
+    settingsStatus.className = 'settings-status success';
+    settingsStatus.classList.remove('hidden');
+    setTimeout(closeSettingsModal, 900);
+  } catch (e) {
+    settingsStatus.textContent = e.message;
+    settingsStatus.className = 'settings-status error';
+    settingsStatus.classList.remove('hidden');
+  } finally {
+    settingsSaveBtn.disabled = false;
+    settingsSpinner.classList.add('hidden');
+  }
+});
+
+loadSettings();
