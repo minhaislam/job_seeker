@@ -43,3 +43,7 @@ desktop.ini
 # ── Logs ──────────────────────────────────────────────────────────
 *.log
 logs/
+
+# ── Claude Code tooling ─────────────────────────────────────────────
+.claude/worktrees/
+.superpowers/

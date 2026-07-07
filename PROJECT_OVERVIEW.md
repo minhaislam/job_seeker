@@ -46,7 +46,7 @@ job_seeker/
 │       └── cover_letter.py  # Cover letter generation via LLM
 │
 ├── frontend/
-│   ├── index.html           # Single-page app shell
+│   ├── index.html           # Single-page app shell — left sidebar (CV status + AI provider) + main content area
 │   └── static/
 │       ├── style.css        # Dark theme, responsive layout
 │       ├── app.js           # All frontend logic (search, render, modal, tabs)

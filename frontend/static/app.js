@@ -168,7 +168,7 @@ function buildCard(job) {
 
   const scoreHTML = job.match_score != null
     ? `<div class="score-ring ${scoreColor(job.match_score)}">${job.match_score}<small>%</small></div>`
-    : `<div class="score-ring score-none" title="Click to score">?</div>`;
+    : `<div class="score-ring score-none" title="Click to score">–</div>`;
 
   const visibleTags = (job.tags || []).slice(0, 5);
   const chips = visibleTags.map(t => `<span class="chip">${t}</span>`).join('');
@@ -445,7 +445,10 @@ settingsProvider.addEventListener('change', updateProviderFieldsVisibility);
 const PROVIDER_LABELS = { default: 'Default', ollama: 'Ollama', openrouter: 'OpenRouter', anthropic: 'Anthropic' };
 
 function updateSettingsIndicator(provider) {
-  settingsIndicator.textContent = PROVIDER_LABELS[provider] || provider;
+  const label = PROVIDER_LABELS[provider] || provider;
+  settingsIndicator.textContent = provider === 'default'
+    ? `● Default (Ollama)`
+    : `● Custom: ${label}`;
 }
 
 async function loadSettings() {
