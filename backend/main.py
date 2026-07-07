@@ -1,12 +1,14 @@
 import asyncio
 import io
 import uuid
+import httpx
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.models import Job, SearchRequest, CoverLetterRequest
+from backend.models import Job, SearchRequest, CoverLetterRequest, LLMSettings
+from backend.services.llm import chat as llm_chat
 from backend.sources import remotive, remoteok, jsearch
 from backend.services import matcher, cover_letter
 
@@ -34,7 +36,7 @@ def _get_session(request: Request, response: Response) -> dict:
     if not session_id or session_id not in _sessions:
         session_id = uuid.uuid4().hex
         response.set_cookie(SESSION_COOKIE, session_id, httponly=True, samesite="lax")
-        _sessions[session_id] = {"profile": "", "scores": {}, "suggestions": []}
+        _sessions[session_id] = {"profile": "", "scores": {}, "suggestions": [], "llm_override": None}
     return _sessions[session_id]
 
 
@@ -79,7 +81,7 @@ async def upload_cv(request: Request, response: Response, file: UploadFile = Fil
 
     session["profile"] = text
     session["scores"] = {}
-    session["suggestions"] = await matcher.suggest_queries(text)
+    session["suggestions"] = await matcher.suggest_queries(text, override=session.get("llm_override"))
     print(f"[CV] uploaded: {len(text)} chars from {filename}")
     return {"status": "ok", "chars": len(text), "suggestions": session["suggestions"]}
 
@@ -89,6 +91,67 @@ async def cv_status(request: Request, response: Response):
     session = _get_session(request, response)
     profile = session["profile"]
     return {"uploaded": bool(profile), "chars": len(profile), "suggestions": session["suggestions"]}
+
+
+@app.get("/api/settings")
+async def get_settings(request: Request, response: Response):
+    session = _get_session(request, response)
+    override = session.get("llm_override")
+    if not override:
+        return {"provider": "default", "model": None, "base_url": None, "has_api_key": False}
+    return {
+        "provider": override.get("provider"),
+        "model": override.get("model"),
+        "base_url": override.get("base_url"),
+        "has_api_key": bool(override.get("api_key")),
+    }
+
+
+@app.post("/api/settings")
+async def save_settings(settings: LLMSettings, request: Request, response: Response):
+    session = _get_session(request, response)
+
+    if settings.provider == "default":
+        session["llm_override"] = None
+        return {"status": "ok", "provider": "default"}
+
+    api_key = settings.api_key
+    existing = session.get("llm_override")
+    if not api_key and existing and existing.get("provider") == settings.provider:
+        api_key = existing.get("api_key")
+    if not api_key and settings.provider in ("openrouter", "anthropic"):
+        raise HTTPException(status_code=400, detail="API key required")
+
+    candidate = {
+        "provider": settings.provider,
+        "api_key": api_key,
+        "base_url": settings.base_url,
+        "model": settings.model,
+    }
+
+    try:
+        await llm_chat("Reply with OK.", override=candidate)
+    except httpx.HTTPStatusError as e:
+        code = e.response.status_code
+        if code in (401, 403):
+            raise HTTPException(status_code=400, detail="Invalid API key")
+        if code == 404:
+            raise HTTPException(status_code=400, detail="Model not found")
+        if code == 429:
+            raise HTTPException(status_code=400, detail="Rate limited — try again shortly")
+        raise HTTPException(status_code=400, detail="Connection test failed")
+    except (httpx.ConnectError, httpx.TimeoutException):
+        target = candidate["base_url"] or settings.provider
+        raise HTTPException(status_code=400, detail=f"Could not reach {target}")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"[Settings] unexpected error: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=400, detail="Connection test failed")
+
+    session["llm_override"] = candidate
+    print(f"[Settings] session updated → provider={settings.provider}")
+    return {"status": "ok", "provider": settings.provider}
 
 
 @app.post("/api/search")
@@ -130,7 +193,7 @@ async def get_job(job_id: str, request: Request, response: Response):
 
     score = session["scores"].get(job_id)
     if score is None:
-        score_data = await matcher.score_job(job, profile)
+        score_data = await matcher.score_job(job, profile, override=session.get("llm_override"))
         score = {
             "match_score": score_data.get("score", 50),
             "match_summary": score_data.get("summary", ""),
@@ -148,7 +211,7 @@ async def gen_cover_letter(req: CoverLetterRequest, request: Request, response: 
     profile = session["profile"]
     if not profile:
         raise HTTPException(status_code=400, detail="No CV uploaded. Please upload your CV first.")
-    text = await cover_letter.generate(req, profile)
+    text = await cover_letter.generate(req, profile, override=session.get("llm_override"))
     return {"cover_letter": text}
 
 
