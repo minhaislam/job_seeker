@@ -23,10 +23,8 @@ body {
   min-height: 100vh;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  display: flex;
 }
-
-/* ===== Layout Shell ===== */
-body { display: flex; min-height: 100vh; }
 
 /* ===== Sidebar ===== */
 .sidebar {

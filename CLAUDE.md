@@ -47,7 +47,7 @@ backend/
     cover_letter.py  — Cover letter generation
 
 frontend/
-  index.html         — Single-page app shell
+  index.html         — Single-page app shell; left sidebar (CV status + AI provider) + main content area
   static/app.js      — All frontend logic (search, cards, modal, lazy scoring)
   static/style.css   — Dark theme
 ```
